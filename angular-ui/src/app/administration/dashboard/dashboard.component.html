@@ -1,0 +1,18 @@
+<div class="mt-3">
+  <div class="row">
+    <div class="col">
+      <div class="d-flex mb-2">
+        <ng-container *ngIf="getTeacher() as teacher" >
+          <a [routerLink]="['/administration/teachers', teacher]" class="btn btn-primary me-2">My statistic</a>
+        </ng-container>
+        <a *ngIf="isAdmin()" routerLink="/administration/teachers" class="btn btn-primary me-2">Teacher management</a>
+        <a routerLink="/administration/courses" class="btn btn-primary me-2">Course management</a>
+        <a routerLink="/administration/course-paths" class="btn btn-primary me-2">Course paths management</a>
+        <a *ngIf="isAdmin()" routerLink="/administration/discounts" class="btn btn-primary me-2">Discount management</a>
+        <a routerLink="/administration/enrollment-statistics" class="btn btn-primary">Enrollment Statistics</a>
+      </div>
+    </div>
+    <hr class="my"> <!-- Adds vertical spacing around the horizontal line -->
+    <router-outlet></router-outlet>
+  </div>
+</div>

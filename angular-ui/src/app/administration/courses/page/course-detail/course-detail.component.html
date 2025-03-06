@@ -1,0 +1,213 @@
+<div *ngIf="getIdRequestUnresolved() as idRequest" class="alert alert-warning rounded shadow-sm mb-4">
+  This course has a pending request. Please
+  <a [routerLink]="['/administration/courses', currentId, 'requests', idRequest]">resolve</a> the request.
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+  <h1 class="text-primary fw-bold">Course Detail Center</h1>
+  <a routerLink="/administration/courses" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Back to list
+  </a>
+</div>
+
+<div class="container-fluid bg-light p-4 rounded shadow-sm" *ngIf="courseDto">
+  <!-- Basic Info Section -->
+  <section id="basic" class="p-4 border rounded mb-4 bg-white">
+    <h2 class="mb-4 border-bottom pb-2">Basic Information</h2>
+    <div class="row">
+      <div class="col-lg-4 text-center">
+        <img
+          [src]="courseDto.thumbnailUrl || 'https://placehold.jp/200x200.png'"
+          class="img-fluid rounded shadow-sm mb-3"
+          alt="Course Thumbnail"
+          style="width: auto; height: 300px; object-fit: cover;">
+      </div>
+      <div class="col-lg-8">
+        <p><strong>Title:</strong> {{ courseDto.title }}</p>
+        <p>
+          <strong>Teacher: </strong>
+          <span *ngIf="isCreateByYou(courseDto.teacher)">{{ courseDto.teacher }}
+            <span class="badge bg-secondary">this account</span>
+          </span>
+          <span *ngIf="!isCreateByYou(courseDto.teacher)">{{ courseDto.teacher }}</span>
+        </p>
+        <p><strong>Participant: {{ participantNumber }} - <a
+          [routerLink]="['/administration/enrollment-statistics', courseDto.id]">Enrollment statistic</a></strong></p>
+        <p>
+          <strong>Description: </strong>
+          <span [innerHTML]="courseDto.description || 'No description available'"></span>
+        </p>
+        <p><strong>Language: </strong> <span class="fw-bold">{{ courseDto.language }}</span></p>
+        <p><strong>Price: </strong> {{ courseDto.price || 'Price not available' }}</p>
+        <p class="badge {{ courseDto.published ? 'bg-success' : 'bg-primary' }}">
+          Status: {{ courseDto.published ? 'Published' : 'Not published' }}
+        </p>
+      </div>
+    </div>
+  </section>
+  <!-- Subtitles, Benefits, and Prerequisites -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="p-3 border rounded bg-white">
+        <h5>Subtitles</h5>
+        <ul class="list-group">
+          <li *ngFor="let subtitle of courseDto?.subtitles" class="list-group-item">
+            {{ subtitle }}
+          </li>
+          <li *ngIf="!courseDto?.subtitles?.length" class="list-group-item text-muted">No subtitles available</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 border rounded bg-white">
+        <h5>Benefits</h5>
+        <ul class="list-group">
+          <li *ngFor="let benefit of courseDto?.benefits" class="list-group-item">
+            {{ benefit }}
+          </li>
+          <li *ngIf="!courseDto?.benefits?.length" class="list-group-item text-muted">No benefits available</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 border rounded bg-white">
+        <h5>Prerequisites</h5>
+        <ul class="list-group">
+          <li *ngFor="let prerequisite of courseDto?.prerequisites" class="list-group-item">
+            {{ prerequisite }}
+          </li>
+          <li *ngIf="!courseDto?.prerequisites?.length" class="list-group-item text-muted">No prerequisites available
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accessibility Section -->
+  <section id="accessibility" class="p-4 border rounded mb-4 bg-white">
+    <h2 class="mb-4 border-bottom pb-2">Accessibility</h2>
+    <p><strong>Created By: </strong>
+      <span *ngIf="isCreateByYou(courseDto.createdBy)">{{ courseDto.createdBy }}
+        <span class="badge bg-secondary">this account</span>
+      </span>
+      <span *ngIf="!isCreateByYou(courseDto.createdBy)">{{ courseDto.createdBy }}</span>
+    </p>
+    <p><strong>Created Date: </strong> {{ courseDto.createdDate | date:'yyyy-MM-dd HH:mm:ss' }}</p>
+    <p><strong>Last Modified By: </strong>
+      <span *ngIf="isCreateByYou(courseDto.lastModifiedBy)">{{ courseDto.lastModifiedBy }}
+        <span class="badge bg-secondary">this account</span>
+      </span>
+      <span *ngIf="!isCreateByYou(courseDto.lastModifiedBy)">{{ courseDto.lastModifiedBy }}</span>
+    </p>
+    <p><strong>Last Modified Date:</strong> {{ courseDto.lastModifiedDate | date: 'yyyy-MM-dd HH:mm:ss' }}</p>
+  </section>
+  <!--Section-->
+  <section id="sections" class="p-4 border rounded mb-4 bg-white">
+    <h2 class="mb-4 border-bottom pb-2 ">Course Sections</h2>
+
+    <div *ngIf="courseDto.sections && courseDto.sections.length > 0; else noSections" class="d-flex">
+      <!-- Section List -->
+      <div class="card w-25 border-0 shadow">
+        <div class="card-header bg-primary text-white fw-bold">Sections</div>
+        <ul class="list-group list-group-flush">
+          <li
+            *ngFor="let section of courseDto.sections; let i = index"
+            (click)="selectSection(section)"
+            [class.active]="selectedSection?.id === section.id"
+            class="list-group-item d-flex justify-content-between align-items-center cursor-pointer">
+            <div>
+              <span
+                class="fw-semibold text-truncate d-inline-block"
+                style="max-width: 150px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+                [ngClass]="{ 'text-secondary': isUnpublishedMode(courseDto, section) }"
+                [title]="section.title">
+                {{ section.orderIndex }} - {{ section.title }}
+              </span>
+            </div>
+            <!-- Dropdown for Actions -->
+            <div class="dropdown" *ngIf="isEdit(courseDto, section)">
+              <button
+                class="btn btn-sm btn-light border-0"
+                type="button"
+                id="dropdownMenuButton{{ i }}"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="bi bi-three-dots"></i>
+              </button>
+              <ul *ngIf="isEdit(courseDto, section)" class="dropdown-menu dropdown-menu-end" [attr.aria-labelledby]="'dropdownMenuButton' + i">
+                <li>
+                  <a [routerLink]="['/administration/courses', currentId, 'sections', section.id, 'lessons', 'add']"
+                     class="dropdown-item">
+                    <i class="bi  me-2"></i>Add Lesson
+                  </a>
+                </li>
+                <li>
+                  <a [routerLink]="['/administration/courses', currentId, 'sections', 'edit', section.id]"
+                     class="dropdown-item">
+                    <i class="bi  me-2"></i>Edit Section
+                  </a>
+                </li>
+                <li>
+                  <button class="dropdown-item text-danger"
+                          (click)="confirmDeleteSection(section.id, section)">
+                    <i class="bi  me-2"></i>Delete Section
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Lesson List -->
+      <div class="ms-4 w-75">
+        <div *ngIf="selectedSection" class="card border-0 shadow">
+          <div class="card-header bg-primary text-white fw-bold">
+            {{ selectedSection.title }}
+          </div>
+          <ul class="list-group list-group-flush">
+            <li *ngFor="let lesson of selectedSection.lessons; let j = index"
+                class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <i class="bi text-primary me-2"></i>
+                <span class="fw-semibold" [ngClass]="{ 'text-secondary': isUnpublishedMode(courseDto, selectedSection) }">{{ lesson.orderIndex }}. {{ lesson.title }}</span>
+                <span class="fw-semibold" *ngIf="getQuizByLessonId(selectedSection, lesson.id) as quiz">
+                  <span class="badge bg-info ms-2">{{ '1 quiz with ' + quiz.questions.length + ' questions'}}</span>
+                </span>
+              </div>
+              <div class="d-flex gap-2">
+                <a [href]="lesson.link" target="_blank" class="btn btn-secondary btn-sm">
+                  <i class="bi me-1"></i>View
+                </a>
+                <a *ngIf="isEdit(courseDto, selectedSection)"
+                   [routerLink]="['/administration/courses', currentId, 'sections', selectedSection.id, 'lessons', lesson.id, 'quizzes']"
+                   class="btn btn-secondary btn-sm">Manage quiz</a>
+                <a *ngIf="isEdit(courseDto, selectedSection)"
+                   [routerLink]="['/administration/courses', currentId, 'sections', selectedSection.id, 'lessons', 'edit', lesson.id]"
+                   class="btn btn-secondary btn-sm">
+                  <i class="bi me-1"></i>Edit
+                </a>
+                <button *ngIf="isEdit(courseDto, selectedSection)"
+                        type="button"
+                        class="btn btn-secondary btn-sm"
+                        (click)="confirmDeleteLesson(selectedSection.id, lesson.id, lesson)">
+                  <i class="bi  me-1"></i>Delete
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Template to Show No Sections Found -->
+    <ng-template #noSections>
+      <div class="text-center py-4">
+        <p class="text-muted fs-5">No Sections could be found.</p>
+      </div>
+    </ng-template>
+  </section>
+
+</div>
+

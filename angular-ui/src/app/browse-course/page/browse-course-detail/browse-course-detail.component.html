@@ -1,0 +1,117 @@
+<div class="container mt-5 p-5 border rounded shadow-lg bg-light">
+  <div class="row ">
+    <h1 class="mb-4 font-weight-bold text-primary">
+      {{ course?.title }}
+    </h1>
+
+    <div class="col-md-6">
+
+      <p class="mb-3">
+        <span [innerHTML]="course?.description || 'No description available'"></span>
+      </p>
+
+      <p class="text-muted"><strong>Teacher:</strong> {{ course?.teacher }}</p>
+      <div class="mt-4">
+        <div>
+          <h5 class="font-weight-bold border-bottom pb-2 mb-3 ">Benefit</h5>
+          <ul class="list-group">
+            <li class="list-group-item">
+              {{ course?.benefits?.join(', ') || 'N/A' }}
+            </li>
+          </ul>
+        </div>
+        <div class="mt-4">
+          <h5 class="font-weight-bold border-bottom pb-2 mb-3 ">Prerequisites</h5>
+
+          <ul class="list-group">
+            <li class="list-group-item">
+              {{ course?.prerequisites?.join(', ') || 'N/A' }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="mt-4">
+          <!-- Phụ đề -->
+          <h5 class="font-weight-bold border-bottom pb-2 mb-3 ">Subtitles</h5>
+
+          <ul class="list-group">
+            <li class="list-group-item">
+              {{ course?.subtitles?.join(', ') || 'N/A' }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 mb-4">
+        <img
+          [src]="course?.thumbnailUrl || 'https://placehold.co/600x400/000000/FFF?text=No+Image'"
+          class="card-img-top"
+          alt="Course Thumbnail"
+          style="height: 400px; object-fit: cover; border-radius: 8px;">
+        <div class="card-body">
+          <h5 class="card-title text-success font-weight-bold">
+            {{ course?.price }}
+          </h5>
+          <ng-container *ngIf="!isAuthenticated; else loggedIn">
+            <div class="alert alert-info mt-3" role="alert">
+              <h6 class="alert-heading">You are not logged in!</h6>
+              <p>Please log in to access the course and other features.</p>
+              <app-login></app-login>
+            </div>
+          </ng-container>
+
+          <ng-template #loggedIn>
+            <div *ngIf="enrollment" class="alert alert-success mt-3" role="alert">
+              <h6 class="alert-heading">Congratulations!</h6>
+              <p>You can start learning right now.</p>
+              <a [routerLink]="['/enrollments', enrollment.id, 'overview']" class="btn btn-primary btn-block">
+                Start Learning
+              </a>
+            </div>
+
+            <div *ngIf="enrollment && enrollment.canChangeCourse" class="alert alert-success mt-3" role="alert">
+              <h6 class="alert-heading">Congratulations! You are eligible to redeem to any course when you purchase the course for less than 7 days</h6>
+              <a [routerLink]="['/change-course']" [queryParams]="{courseId: enrollment.courseId, enrollmentId: enrollment.id}">Change</a>
+            </div>
+
+            <div *ngIf="!enrollment" class="alert alert-warning mt-3" role="alert">
+              <h6 class="alert-heading">You have not purchased this course!</h6>
+              <p>To start learning, please purchase the course.</p>
+              <a [routerLink]="['/checkout', course?.id]" class="btn btn-success btn-block">
+                Buy Now
+              </a>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5">
+      <h5 class="font-weight-bold border-bottom pb-2 mb-3">Reviews</h5>
+
+      <div *ngIf="course && course.reviews && course.reviews.length > 0; else noReviews">
+        <div *ngFor="let review of course.reviews" class="card mb-3 shadow-sm">
+          <div class="card-body">
+            <h6 class="font-weight-bold">{{ review.username }}</h6>
+            <div class="star-rating">
+              <span *ngFor="let star of getStarsIcon(review.rating)" [innerHTML]="star"></span>
+            </div>
+            <!-- Comment -->
+            <p class="mt-2">
+              <span [innerHTML]="review.comment"></span>
+            </p>
+            <!-- Review date -->
+            <small class="text-muted">{{ review.reviewDate | date:'short' }}</small>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noReviews>
+        <p class="text-muted">No reviews available yet.</p>
+      </ng-template>
+    </div>
+
+  </div>
+</div>

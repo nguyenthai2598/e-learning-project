@@ -1,0 +1,82 @@
+<div [formGroup]="group!" class="row mb-3">
+  @if (rowType === 'checkbox') {
+    <div class="col-md-10 offset-md-2">
+      <div class="form-check">
+        <input [id]="field + randomId" [formControlName]="field" type="checkbox"
+               class="form-check-input {{ getInputClasses() }}"/>
+        <label [for]="field + randomId" class="form-check-label">
+          {{ label }} <span class='text-danger' *ngIf="isRequired()">*</span>
+        </label>
+      </div>
+      <app-input-errors [control]="dynamicControl!"/>
+    </div>
+  } @else {
+    <label [for]="rowType === 'radio' ? '' : field + randomId" class="col-md-2 col-form-label">
+      {{ label }} <span class='text-danger' *ngIf="isRequired()">*</span>
+    </label>
+    <div class="col-md-10">
+      @if (rowType === 'text' || rowType === 'password' || rowType === 'email' || rowType === 'tel') {
+        <input [id]="field + randomId" [type]="rowType" [formControlName]="field" [placeholder]="placeholder"
+               class="form-control {{ getInputClasses() }}"/>
+      }
+
+      @else if (rowType === 'number') {
+        <input [id]="field + randomId" type="number" [formControlName]="field" [placeholder]="placeholder"
+               class="form-control {{ getInputClasses() }}"/>
+      }
+
+      @else if (rowType === 'textarea') {
+          <app-text-editor (contentChange)="textEditorChange($event)" [control]="dynamicControl!"/>
+      }
+
+      @else if (rowType === 'select') {
+        <select [id]="field + randomId" [formControlName]="field"
+                class="form-select {{ getInputClasses() }}">
+          <option [ngValue]="null">Please select</option>
+          @for (option of optionsMap! | keyvalue; track option.key) {
+            <option [ngValue]="option.key">{{ option.value }}</option>
+          }
+        </select>
+      }
+
+      @else if (rowType === 'multiselect') {
+        <select [id]="field + randomId" [formControlName]="field" multiple="true"
+                class="form-select {{ getInputClasses() }}">
+          @for (option of optionsMap! | keyvalue; track option.key) {
+            <option [ngValue]="option.key">{{ option.value }}</option>
+          }
+        </select>
+      }
+
+      @else if (rowType === 'radio') {
+        @if (!isRequired()) {
+          <div class="form-check form-check-inline pt-2">
+            <input [id]="field + randomId" [formControlName]="field" [value]="null" type="radio"
+                   class="form-check-input {{ inputClass }}"/>
+            <label [for]="field + randomId" class="form-check-label">Please select</label>
+          </div>
+        }
+        <div *ngFor="let option of optionsMap! | keyvalue" class="form-check form-check-inline pt-2">
+          <input
+            [id]="field + randomId + '_' + option.key"
+            [formControlName]="field"
+            [value]="option.key"
+            type="radio"
+            class="form-check-input {{ getInputClasses() }}"
+            (click)="onRadioOptionsSelected(option.key)"/>
+          <label [for]="field + randomId + '_' + option.key" class="form-check-label">{{ option.value }}</label>
+        </div>
+      }
+
+      @else if (rowType === 'imageFile' || rowType === 'videoFile' || rowType === 'docFile') {
+        <app-file-row [rowType]="rowType" [control]="dynamicControl!"></app-file-row>
+      }
+
+      @else {
+        <div class="alert alert-danger">Unsupported row type: {{ rowType }}</div>
+      }
+
+      <app-input-errors [control]="dynamicControl!"/>
+    </div>
+  }
+</div>

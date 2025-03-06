@@ -1,0 +1,95 @@
+scheme: http
+hostname: localhost
+reverse-proxy-uri: ${scheme}://${hostname}
+
+keycloak-host: ${reverse-proxy-uri}/auth
+keycloak-realm: keycloak101
+oauth2-issuer: ${keycloak-host}/realms/${keycloak-realm}
+oauth2-client-id: bff-client
+oauth2-client-secret: secret
+
+bff-public-uri: ${reverse-proxy-uri}/bff
+lms-internal-uri: ${scheme}://${hostname}:7084
+
+server:
+  port: 7080
+
+spring:
+  application:
+    name: bff
+  cloud:
+    gateway:
+      routes:
+        - id: bff
+          uri: ${lms-internal-uri}
+          predicates:
+            - Path=/api/**
+          filters:
+            - TokenRelay=
+            - SaveSession
+            - StripPrefix=1
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${oauth2-issuer}
+            user-name-attribute: preferred_username
+        registration:
+          e-learning-project-bff:
+            provider: keycloak
+            authorization-grant-type: authorization_code
+            client-id: ${oauth2-client-id}
+            client-secret: ${oauth2-client-secret}
+            scope: openid, profile, email, offline_access
+
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+          - iss: ${oauth2-issuer}
+            username-claim: preferred_username
+            authorities:
+              - path: $.roles
+        client:
+          client-uri: ${bff-public-uri}
+          security-matchers:
+            - /api/**
+            - /login/**
+            - /oauth2/**
+            - /logout/**
+          permit-all:
+            - /api/**
+            - /login/**
+            - /oauth2/**
+            - /logout/connect/back-channel/e-learning-project-bff
+          csrf: cookie_accessible_from_js
+          oauth2-redirections:
+            authentication-entry-point: UNAUTHORIZED
+            rp-initiated-logout: accepted
+          back-channel-logout:
+            enabled: true
+            internal-logout-uri: ${bff-public-uri}/logout/connect/back-channel/e-learning-project-bff
+          post-logout-redirect-path: /ui
+        resourceserver:
+          permit-all:
+            - /login-options
+            - /actuator/health/readiness
+            - /actuator/health/liveness
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true

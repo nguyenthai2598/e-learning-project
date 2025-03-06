@@ -1,0 +1,19 @@
+.d-flex.gap-2 > * {
+  margin-left: 8px;
+}
+
+.accordion-header {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.custom-button {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 10px;
+}
+
+.accordion-button {
+  margin: 0 !important;
+  padding: 0.5rem !important;
+}

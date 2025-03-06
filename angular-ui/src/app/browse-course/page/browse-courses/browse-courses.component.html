@@ -1,0 +1,45 @@
+<div class="container my-4">
+  <form (ngSubmit)="onSearch()" class="input-group">
+    <input
+      type="text"
+      class="form-control"
+      placeholder="Search here..."
+      [(ngModel)]="searchQuery"
+      name="searchQuery"
+      required
+    />
+    <button class="btn btn-primary" type="submit">Search</button>
+  </form>
+</div>
+
+<nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+    <li class="page-item" [class.disabled]="paginationUtils!.number === 0">
+      <button class="page-link" (click)="onPageChange(paginationUtils!.number - 1)" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </button>
+    </li>
+    <li *ngFor="let page of getPageRange()" class="page-item" [class.active]="page === paginationUtils!.number">
+      <button class="page-link" (click)="onPageChange(page)">{{ page + 1 }}</button>
+    </li>
+    <li class="page-item" [class.disabled]="paginationUtils!.number === paginationUtils!.totalPages - 1">
+      <button class="page-link" (click)="onPageChange(paginationUtils!.number + 1)" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </button>
+    </li>
+  </ul>
+</nav>
+
+@if (!courses || courses.length === 0) {
+  <div>No course could be found.</div>
+} @else {
+
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    @for (course of courses; track course.id) {
+      <app-course-card [course]="course" [showCheckoutButton]="true"/>
+    }
+  </div>
+  <br>
+
+}
+
